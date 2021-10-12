@@ -1,0 +1,49 @@
+{
+    "name": "bluehost/wp-data-module",
+    "description": "Bluehost Specific Data Module",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Evan Mullins",
+            "email": "evan@bluehost.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Bluehost\\WP\\Module\\Data\\": "src"
+        },
+        "files": [
+            "bootstrap.php"
+        ]
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://bluehost.github.io/satis/",
+            "only": [
+                "bluehost/*",
+                "mojoness/*",
+                "endurance/*"
+            ]
+        }
+    ],
+    "require": {
+        "endurance/wp-module-data": "^1.6",
+    },
+    "require-dev": {
+        "bluehost/wp-php-standards": "^1.1"
+    },
+    "scripts": {
+        "fix": [
+            "vendor/bin/phpcbf . --standard=Bluehost"
+        ],
+        "lint": [
+            "vendor/bin/phpcs . --standard=Bluehost -s"
+        ]
+    },
+    "scripts-descriptions": {
+        "fix": "Automatically fix coding standards issues where possible.",
+        "lint": "Check files against coding standards."
+    }
+}
