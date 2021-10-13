@@ -29,7 +29,7 @@
         }
     ],
     "require": {
-        "endurance/wp-module-data": "^1.6",
+        "endurance/wp-module-data": "^1.6"
     },
     "require-dev": {
         "bluehost/wp-php-standards": "^1.1"
