@@ -1,30 +1,35 @@
 <?php
+use Bluehost\WP\Data\Customer;
 
 if ( function_exists( 'add_action' ) ) {
-	add_action( 'after_setup_theme', 'eig_module_sso_register' );
+	add_action( 'after_setup_theme', 'register_data_package' );
 }
 
 /**
  * Register the single sign-on module
  */
-function eig_module_sso_register() {
-	eig_register_module( array(
-		'name'     => 'sso',
-		'label'    => __( 'Single Sign-on', 'endurance' ),
-		'callback' => 'eig_module_sso_load',
-		'isActive' => true,
-		'isHidden' => true,
-	) );
+function register_data_package() {
+	// exit if module manager does not exist
+	if ( ! class_exists( 'Endurance_ModuleManager' ) ) {
+		return;
+	}
+
+	// exit if data module is not active
+	if ( ! Endurance_ModuleManager::isModuleActive('endurance/wp-module-data') ) {
+		return;
+	}
+	
+	// add filter callback to add customer data
+	add_filter( 'endurance_wp_data_module_cron_data_filter', 'bluehost_data_cron_callback' );
 }
 
 /**
- * Load the single sign-on module
+ * Filter the cron event data object with bluehost specific customer data
+ * 
+ * @param array $data prepared to send in the cron event
+ * @return array filtered data to send in the cron event
  */
-function eig_module_sso_load() {
-
-	require dirname( __FILE__ ) . '/functions.php';
-
-	add_action( 'wp_ajax_nopriv_sso-check', 'eig_sso_handler' );
-	add_action( 'wp_ajax_sso-check', 'eig_sso_handler' );
-
+function bluehost_data_cron_callback( $data ) {
+	$data['customer'] = Customer::collect();
+	return $data;
 }

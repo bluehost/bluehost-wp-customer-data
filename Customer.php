@@ -1,5 +1,5 @@
 <?php
-namespace Bluehost\WP\Module\Data\Helpers;
+namespace Bluehost\WP\Data;
 
 use Bluehost\AccessToken;
 use Bluehost\SiteMeta;
