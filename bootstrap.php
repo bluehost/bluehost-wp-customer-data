@@ -2,13 +2,13 @@
 use Bluehost\WP\Data\Customer;
 
 if ( function_exists( 'add_action' ) ) {
-	add_action( 'after_setup_theme', 'register_data_package' );
+	add_action( 'after_setup_theme', 'bluehost_register_data_package' );
 }
 
 /**
  * Register the single sign-on module
  */
-function register_data_package() {
+function bluehost_register_data_package() {
 	// exit if module manager does not exist
 	if ( ! class_exists( 'Endurance_ModuleManager' ) ) {
 		return;
