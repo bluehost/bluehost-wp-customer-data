@@ -15,7 +15,7 @@ function bluehost_register_data_package() {
 	}
 
 	// exit if data module is not active
-	if ( ! Endurance_ModuleManager::isModuleActive('endurance/wp-module-data') ) {
+	if ( ! Endurance_ModuleManager::isModuleActive('data') ) {
 		return;
 	}
 	

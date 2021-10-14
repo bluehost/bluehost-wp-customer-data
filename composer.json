@@ -11,7 +11,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Bluehost\\WP\\Module\\Data\\": "src"
+            "Bluehost\\WP\\Data\\": "includes"
         },
         "files": [
             "bootstrap.php"
