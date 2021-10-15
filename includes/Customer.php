@@ -11,22 +11,22 @@ use Endurance\WP\Module\Data\Helpers\Transient;
 class Customer {
 
     /**
-	 * Prepare customer data
-	 *
+     * Prepare customer data
+     *
      * @return array of customer data
-	 */
+     */
     public static function collect() {
         $bh_cdata = Transient::get( 'bh_cdata' );
 
-		if ( !$bh_cdata ) {
+        if ( ! $bh_cdata ) {
             $guapi    = self::get_account_info();
             $mole     = array( 'meta' => self::get_onboarding_info() );
-            $bh_cdata =  array_merge( $guapi, $mole );
-			Transient::set( 'bh_cdata', $bh_cdata, WEEK_IN_SECONDS );            
-		}
+            $bh_cdata = array_merge( $guapi, $mole );
+            Transient::set( 'bh_cdata', $bh_cdata, WEEK_IN_SECONDS );            
+        }
 
-		return $bh_cdata;
-	}
+        return $bh_cdata;
+    }
 
     /**
      * Connect to API with token via AccessToken Class in Bluehost Plugin
@@ -36,7 +36,7 @@ class Customer {
      */
     public static function connect( $path ) {
         
-        if ( !$path ) {
+        if ( ! $path ) {
             return;
         }
 
@@ -54,7 +54,7 @@ class Customer {
         $response_code = wp_remote_retrieve_response_code( $response );
 
         // exit on errors
-        if ( is_wp_error($response) || wp_remote_retrieve_response_code($response) != 200 ) {
+        if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) != 200 ) {
             return;
         }
 
@@ -73,23 +73,23 @@ class Customer {
         $response = self::connect( '/hosting-account-info' );
         
         // exit if response is not object
-        if ( !is_object($response) ) {
+        if ( ! is_object( $response ) ) {
             return $info;
         }
 
         // transfer relevant data to $info array
         $info['customer_id']  = AccessToken::get_user();
         
-        if (property_exists( $response, 'affiliate' )) {
+        if ( property_exists( $response, 'affiliate' ) ) {
             $info['affiliate']    = $response->affiliate->id .":". $response->affiliate->tracking_code;
         }
 
-        if (property_exists( $response, 'customer' )) {
+        if ( property_exists( $response, 'customer' ) ) {
             $info['provider']     = $response->customer->provider;
             $info['signup_date']  = $response->customer->signup_date;
         }
         
-        if (property_exists( $response, 'plan' )) {
+        if ( property_exists( $response, 'plan' ) ) {
             $info['plan_term']    = $response->plan->term;
             $info['plan_type']    = $response->plan->type;
             $info['plan_subtype'] = $response->plan->subtype;
@@ -110,28 +110,28 @@ class Customer {
         $response = self::connect( '/onboarding-info' );
 
         // exit if response is not object
-        if ( !is_object($response) ) {
+        if ( ! is_object($response) ) {
             return $info;
         }
 
         // transfer existing relevant data to $info array
-        if (property_exists( $response, 'description' )) {
-            $comfort = self::normalize_comfort($response->description->comfort_creating_sites); // normalize to 0-100 value
+        if ( property_exists( $response, 'description' ) ) {
+            $comfort = self::normalize_comfort( $response->description->comfort_creating_sites ); // normalize to 0-100 value
             if ( $comfort > 0 ) 
                 $info['comfort'] = $comfort;
                 
-            $help = self::normalize_help($response->description->help_needed); // normalize to 0-100
+            $help = self::normalize_help( $response->description->help_needed ); // normalize to 0-100
             if ( $help > 0 )
                 $info['help'] = $help;
         }
         
 
-        if (property_exists( $response, 'site_intentions' )) {
-            $blog = self::normalize_blog($response->site_intentions->want_blog);
+        if ( property_exists( $response, 'site_intentions' ) ) {
+            $blog = self::normalize_blog( $response->site_intentions->want_blog );
             if ( $blog > 0 ) 
                 $info['blog'] = $blog;
             
-            $store = self::normalize_store($response->site_intentions->want_store);
+            $store = self::normalize_store( $response->site_intentions->want_store );
             if ( $store > 0 )
                 $info['store'] = $store;
             
@@ -153,9 +153,9 @@ class Customer {
      * 
      * For now this is just 0 or 20 values, but in the future we can update based on other factors and treat as a blog score
      */
-    public static function normalize_blog($blog){
+    public static function normalize_blog( $blog ){
 
-        switch ($blog){
+        switch( $blog ){
             case '1':
                 return 20;
                 break;
@@ -170,9 +170,9 @@ class Customer {
      * 
      * For now this is just 0 or 20 values, but in the future we can update based on other factors and treat as a store score
      */
-    public static function normalize_store($store){
+    public static function normalize_store( $store ){
 
-        switch ($store){
+        switch( $store ){
             case '1':
                 return 20;
                 break;
@@ -193,9 +193,9 @@ class Customer {
      * @param string $comfort value returned from api for comfort_creating_sites
      * @return integer representing normalized comfort level 
      */
-    public static function normalize_comfort($comfort){
+    public static function normalize_comfort( $comfort ){
 
-        switch ($comfort){
+        switch( $comfort ){
             case "0":
                 return 1;
                 break;
@@ -224,9 +224,9 @@ class Customer {
      * @param string $help value returned from api for help_needed
      * @return integer representing normalized help level
      */
-    public static function normalize_help($help){
+    public static function normalize_help( $help ){
 
-        switch ($help){
+        switch( $help ){
             case "no_help":
                 return 1;
                 break;
