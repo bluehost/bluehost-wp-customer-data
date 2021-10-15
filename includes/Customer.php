@@ -3,6 +3,7 @@ namespace Bluehost\WP\Data;
 
 use Bluehost\AccessToken;
 use Bluehost\SiteMeta;
+use Endurance\WP\Module\Data\Helpers\Transient;
 
 /**
  * Helper class for gathering and formatting customer data
@@ -15,10 +16,16 @@ class Customer {
      * @return array of customer data
 	 */
     public static function collect() {
-        $guapi    = self::get_account_info();
-        $mole     = array( 'meta' => self::get_onboarding_info() );
-        $customer =  array_merge( $guapi, $mole );
-		return $customer;
+        $bh_cdata = Transient::get( 'bh_cdata' );
+
+		if ( !$bh_cdata ) {
+            $guapi    = self::get_account_info();
+            $mole     = array( 'meta' => self::get_onboarding_info() );
+            $bh_cdata =  array_merge( $guapi, $mole );
+			Transient::set( 'bh_cdata', $bh_cdata, WEEK_IN_SECONDS );            
+		}
+
+		return $bh_cdata;
 	}
 
     /**
@@ -28,11 +35,15 @@ class Customer {
      * @return object of response data in json format
      */
     public static function connect( $path ) {
+        
         if ( !$path ) {
             return;
         }
 
+        // refresh token if needed
         AccessToken::maybe_refresh_token();
+        
+        // construct request
         $token         = AccessToken::get_token();
         $user_id       = AccessToken::get_user();
         $domain        = SiteMeta::get_domain();
@@ -42,6 +53,7 @@ class Customer {
         $response      = wp_remote_get( $url, $args );
         $response_code = wp_remote_retrieve_response_code( $response );
 
+        // exit on errors
         if ( is_wp_error($response) || wp_remote_retrieve_response_code($response) != 200 ) {
             return;
         }
@@ -56,10 +68,11 @@ class Customer {
      * @return array of relevant data
      */
     public static function get_account_info(){
+
         $info     = array();
         $response = self::connect( '/hosting-account-info' );
         
-        //exit if response is not object
+        // exit if response is not object
         if ( !is_object($response) ) {
             return $info;
         }
@@ -92,10 +105,11 @@ class Customer {
      * @return array of relevant data
      */
     public static function get_onboarding_info(){
+
         $info     = array();
         $response = self::connect( '/onboarding-info' );
 
-        //exit if response is not object
+        // exit if response is not object
         if ( !is_object($response) ) {
             return $info;
         }
@@ -140,6 +154,7 @@ class Customer {
      * For now this is just 0 or 20 values, but in the future we can update based on other factors and treat as a blog score
      */
     public static function normalize_blog($blog){
+
         switch ($blog){
             case '1':
                 return 20;
@@ -156,6 +171,7 @@ class Customer {
      * For now this is just 0 or 20 values, but in the future we can update based on other factors and treat as a store score
      */
     public static function normalize_store($store){
+
         switch ($store){
             case '1':
                 return 20;
@@ -178,6 +194,7 @@ class Customer {
      * @return integer representing normalized comfort level 
      */
     public static function normalize_comfort($comfort){
+
         switch ($comfort){
             case "0":
                 return 1;
@@ -192,7 +209,7 @@ class Customer {
                 return 100;
                 break;
             default: // -1 or blank
-                return 0; // null ?
+                return 0;
                 break;
         }
     }
@@ -208,6 +225,7 @@ class Customer {
      * @return integer representing normalized help level
      */
     public static function normalize_help($help){
+
         switch ($help){
             case "no_help":
                 return 1;
@@ -219,7 +237,7 @@ class Customer {
                 return 100;
                 break;
              default: // skip
-                return 0; // null ?
+                return 0;
                 break;
         }
     }
