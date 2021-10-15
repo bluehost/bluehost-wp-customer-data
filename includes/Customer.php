@@ -15,8 +15,8 @@ class Customer {
      * @return array of customer data
 	 */
     public static function collect() {
-        $guapi = self::get_account_info();
-        $mole  = array( 'meta' => self::get_onboarding_info() );
+        $guapi    = self::get_account_info();
+        $mole     = array( 'meta' => self::get_onboarding_info() );
         $customer =  array_merge( $guapi, $mole );
 		return $customer;
 	}
@@ -28,10 +28,10 @@ class Customer {
      * @return object of response data in json format
      */
     public static function connect( $path ) {
-        if ( ! $path ) {
+        if ( !$path ) {
             return;
         }
-        // AccessToken::refresh_token();
+
         AccessToken::maybe_refresh_token();
         $token         = AccessToken::get_token();
         $user_id       = AccessToken::get_user();
@@ -59,17 +59,29 @@ class Customer {
         $info     = array();
         $response = self::connect( '/hosting-account-info' );
         
+        //exit if response is not object
+        if ( !is_object($response) ) {
+            return $info;
+        }
+
         // transfer relevant data to $info array
         $info['customer_id']  = AccessToken::get_user();
-        $info['affiliate']    = $response->affiliate->id .":". $response->affiliate->tracking_code;
-        $info['provider']     = $response->customer->provider;
-        $info['plan_term']    = $response->plan->term;
-        $info['plan_type']    = $response->plan->type;
-        $info['plan_subtype'] = $response->plan->subtype;
-        $info['signup_date']  = $response->customer->signup_date;
-        // $info['ltv'] // life time spend
-        // $info['cancel_date']
+        
+        if (property_exists( $response, 'affiliate' )) {
+            $info['affiliate']    = $response->affiliate->id .":". $response->affiliate->tracking_code;
+        }
 
+        if (property_exists( $response, 'customer' )) {
+            $info['provider']     = $response->customer->provider;
+            $info['signup_date']  = $response->customer->signup_date;
+        }
+        
+        if (property_exists( $response, 'plan' )) {
+            $info['plan_term']    = $response->plan->term;
+            $info['plan_type']    = $response->plan->type;
+            $info['plan_subtype'] = $response->plan->subtype;
+        }
+        
         return $info;
     }
 
@@ -83,31 +95,41 @@ class Customer {
         $info     = array();
         $response = self::connect( '/onboarding-info' );
 
+        //exit if response is not object
+        if ( !is_object($response) ) {
+            return $info;
+        }
+
         // transfer existing relevant data to $info array
-        $comfort = self::normalize_comfort($response->description->comfort_creating_sites); // normalize to 0-100 value
-        if ( $comfort > 0 ) 
-            $info['comfort'] = $comfort;
-
-        $help = self::normalize_help($response->description->help_needed); // normalize to 0-100
-        if ( $help > 0 )
-            $info['help'] = $help;
-           
-        $blog = self::normalize_blog($response->site_intentions->want_blog);
-        if ( $blog > 0 ) 
-            $info['blog'] = $blog;
+        if (property_exists( $response, 'description' )) {
+            $comfort = self::normalize_comfort($response->description->comfort_creating_sites); // normalize to 0-100 value
+            if ( $comfort > 0 ) 
+                $info['comfort'] = $comfort;
+                
+            $help = self::normalize_help($response->description->help_needed); // normalize to 0-100
+            if ( $help > 0 )
+                $info['help'] = $help;
+        }
         
-        $store = self::normalize_store($response->site_intentions->want_store);
-        if ( $store > 0 )
-            $info['store'] = $store;
-        
-        if ( isset( $response->site_intentions->type ) )
-            $info['type'] = $response->site_intentions->type;
 
-        if ( isset( $response->site_intentions->topic ) )
-            $info['topic'] = $response->site_intentions->topic;
+        if (property_exists( $response, 'site_intentions' )) {
+            $blog = self::normalize_blog($response->site_intentions->want_blog);
+            if ( $blog > 0 ) 
+                $info['blog'] = $blog;
+            
+            $store = self::normalize_store($response->site_intentions->want_store);
+            if ( $store > 0 )
+                $info['store'] = $store;
+            
+            if ( isset( $response->site_intentions->type ) )
+                $info['type'] = $response->site_intentions->type;
 
-        if ( isset( $response->site_intentions->owner ) )
-            $info['owner'] = $response->site_intentions->owner;
+            if ( isset( $response->site_intentions->topic ) )
+                $info['topic'] = $response->site_intentions->topic;
+
+            if ( isset( $response->site_intentions->owner ) )
+                $info['owner'] = $response->site_intentions->owner;
+        }
 
         return $info;
     }
