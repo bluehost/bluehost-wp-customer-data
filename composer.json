@@ -1,6 +1,6 @@
 {
-    "name": "bluehost/wp-data-module",
-    "description": "Bluehost Specific Data Module",
+    "name": "bluehost/bluehost-wp-customer-data",
+    "description": "Bluehost Specific Customer Data Module Integrations",
     "type": "library",
     "license": "GPL-2.0-or-later",
     "authors": [
