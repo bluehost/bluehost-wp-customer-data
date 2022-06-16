@@ -6,21 +6,12 @@ if ( function_exists( 'add_action' ) ) {
 }
 
 /**
- * Register the single sign-on module
+ * Register the customer data module
  */
 function bluehost_register_data_package() {
-	// exit if module manager does not exist
-	if ( ! class_exists( 'Endurance_ModuleManager' ) ) {
-		return;
-	}
-
-	// exit if data module is not active
-	if ( ! Endurance_ModuleManager::isModuleActive('data') ) {
-		return;
-	}
 	
 	// add filter callback to add customer data
-	add_filter( 'endurance_wp_data_module_cron_data_filter', 'bluehost_data_cron_callback' );
+	add_filter( 'newfold_wp_data_module_cron_data_filter', 'bluehost_data_cron_callback' );
 }
 
 /**
