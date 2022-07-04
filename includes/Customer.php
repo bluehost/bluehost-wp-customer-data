@@ -3,7 +3,7 @@ namespace Bluehost\WP\Data;
 
 use Bluehost\AccessToken;
 use Bluehost\SiteMeta;
-use Endurance\WP\Module\Data\Helpers\Transient;
+use NewfoldLabs\WP\Module\Data\Helpers\Transient;
 
 /**
  * Helper class for gathering and formatting customer data
