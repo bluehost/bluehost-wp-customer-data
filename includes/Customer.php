@@ -22,7 +22,7 @@ class Customer {
             $guapi    = self::get_account_info();
             $mole     = array( 'meta' => self::get_onboarding_info() );
             $bh_cdata = array_merge( $guapi, $mole );
-            Transient::set( 'bh_cdata', $bh_cdata, WEEK_IN_SECONDS );            
+            Transient::set( 'bh_cdata', $bh_cdata, WEEK_IN_SECONDS );
         }
 
         return $bh_cdata;
@@ -105,19 +105,27 @@ class Customer {
         }
 
         
-        if (
-            isset( $response->plan ) &&
-            is_object( $response->plan ) &&
+        if ( isset( $response->plan ) && is_object( $response->plan ) ) {
+
             // using property_exists in case of null value
-            property_exists( $response->plan, 'term' ) &&
-            property_exists( $response->plan, 'type' ) &&
-            property_exists( $response->plan, 'subtype' )
-        ) {
-            $info['plan_term']    = $response->plan->term;
-            $info['plan_type']    = $response->plan->type;
-            $info['plan_subtype'] = $response->plan->subtype;
+            if ( property_exists( $response->plan, 'term' ) {
+                $info['plan_term'] = $response->plan->term;
+            }
+
+            if ( property_exists( $response->plan, 'type' ) ) {
+                $info['plan_type'] = $response->plan->type;
+            }
+
+            if ( property_exists( $response->plan, 'subtype' ) ) {
+                $info['plan_subtype'] = $response->plan->subtype;
+            }
+
+            if ( property_exists( $response->plan, 'username' ) ) {
+                $info['username'] = $response->plan->username;
+            }
+
         }
-        
+
         return $info;
     }
 
