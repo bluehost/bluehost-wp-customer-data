@@ -108,7 +108,7 @@ class Customer {
         if ( isset( $response->plan ) && is_object( $response->plan ) ) {
 
             // using property_exists in case of null value
-            if ( property_exists( $response->plan, 'term' ) {
+            if ( property_exists( $response->plan, 'term' ) ) {
                 $info['plan_term'] = $response->plan->term;
             }
 
