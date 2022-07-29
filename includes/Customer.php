@@ -60,13 +60,15 @@ class Customer {
         switch( $path ) {
             case '/onboarding-info':
             case '/hosting-account-info':
-                $provided = \get_option( self::get_cdata_key_by_path( $path ) );
+                $key = self::get_cdata_key_by_path( $path );
+                $provided = \get_option(  );
                 if ( 
                     ! empty( $provided ) 
                     && is_string( $provided ) 
                     && is_object( $decoded = json_decode( $provided ) )
                 ) {
                     $provided = $decoded;
+                    \delete_option( $key );
                 }
             break;
         }
