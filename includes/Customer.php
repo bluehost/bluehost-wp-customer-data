@@ -61,7 +61,7 @@ class Customer {
             case '/onboarding-info':
             case '/hosting-account-info':
                 $key = self::get_cdata_key_by_path( $path );
-                $provided = \get_option(  );
+                $provided = \get_option( $key );
                 if ( 
                     ! empty( $provided ) 
                     && is_string( $provided ) 
