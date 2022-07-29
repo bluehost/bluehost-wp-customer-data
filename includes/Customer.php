@@ -11,21 +11,82 @@ use NewfoldLabs\WP\Module\Data\Helpers\Transient;
 class Customer {
 
     /**
+     * Normalized, weekly-cached.
+     *
+     * @var string
+     */
+    private static $transient = 'bh_cdata';
+
+    /**
+     * Provided option.
+     *
+     * @var string
+     */
+    private static $provided_guapi = 'bh_cdata_guapi';
+
+    /**
+     * Provided option.
+     *
+     * @var string
+     */
+    private static $provided_mole = 'bh_cdata_mole';
+
+    /**
      * Prepare customer data
      *
      * @return array of customer data
      */
     public static function collect() {
-        $bh_cdata = Transient::get( 'bh_cdata' );
+        $bh_cdata = Transient::get( self::$transient );
 
         if ( ! $bh_cdata ) {
             $guapi    = self::get_account_info();
             $mole     = array( 'meta' => self::get_onboarding_info() );
             $bh_cdata = array_merge( $guapi, $mole );
-            Transient::set( 'bh_cdata', $bh_cdata, WEEK_IN_SECONDS );
+            Transient::set( self::$transient, $bh_cdata, WEEK_IN_SECONDS );
         }
 
         return $bh_cdata;
+    }
+
+    /**
+     * Prepopulate with provided data.
+     * 
+     * @param string $path of desired API endpoint
+     * @return object|false of response data in json format
+     */
+    public static function provided( $path ) {
+        $provided = false;
+        switch( $path ) {
+            case '/onboarding-info':
+            case '/hosting-account-info':
+                $provided = \get_option( self::get_cdata_key_by_path( $path ) );
+                if ( 
+                    ! empty( $provided ) 
+                    && is_string( $provided ) 
+                    && is_object( $decoded = json_decode( $provided ) )
+                ) {
+                    $provided = $decoded;
+                }
+            break;
+        }
+
+        return $provided;
+    }
+
+    /**
+     * Map usersite path to cdata key.
+     *
+     * @param string $path
+     * @return string
+     */
+    private static function get_cdata_key_by_path( $path ) {
+        switch( $path ) {
+            case '/hosting-account-details': 
+                return self::$provided_guapi;
+            case '/onboarding-info':
+                return self::$provided_mole;
+        }
     }
 
     /**
@@ -38,6 +99,12 @@ class Customer {
         
         if ( ! $path ) {
             return;
+        }
+
+        $provided = self::provided( $path );
+
+        if ( false !== $provided ) {
+            return $provided;
         }
 
         // refresh token if needed
