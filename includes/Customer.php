@@ -84,7 +84,7 @@ class Customer {
      */
     private static function get_cdata_key_by_path( $path ) {
         switch( $path ) {
-            case '/hosting-account-details': 
+            case '/hosting-account-info': 
                 return self::$provided_guapi;
             case '/onboarding-info':
                 return self::$provided_mole;
