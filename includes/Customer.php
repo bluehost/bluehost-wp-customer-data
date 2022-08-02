@@ -15,21 +15,21 @@ class Customer {
      *
      * @var string
      */
-    private static $transient = 'bh_cdata';
+    private const TRANSIENT = 'bh_cdata';
 
     /**
      * Provided option.
      *
      * @var string
      */
-    private static $provided_guapi = 'bh_cdata_guapi';
+    private const PROVIDED_GUAPI = 'bh_cdata_guapi';
 
     /**
      * Provided option.
      *
      * @var string
      */
-    private static $provided_mole = 'bh_cdata_mole';
+    private const PROVIDED_MOLE = 'bh_cdata_mole';
 
     /**
      * Prepare customer data
@@ -37,13 +37,13 @@ class Customer {
      * @return array of customer data
      */
     public static function collect() {
-        $bh_cdata = Transient::get( self::$transient );
+        $bh_cdata = Transient::get( self::TRANSIENT );
 
         if ( ! $bh_cdata ) {
             $guapi    = self::get_account_info();
             $mole     = array( 'meta' => self::get_onboarding_info() );
             $bh_cdata = array_merge( $guapi, $mole );
-            Transient::set( self::$transient, $bh_cdata, WEEK_IN_SECONDS );
+            Transient::set( self::TRANSIENT, $bh_cdata, WEEK_IN_SECONDS );
         }
 
         return $bh_cdata;
@@ -85,9 +85,9 @@ class Customer {
     private static function get_cdata_key_by_path( $path ) {
         switch( $path ) {
             case '/hosting-account-info': 
-                return self::$provided_guapi;
+                return self::PROVIDED_GUAPI;
             case '/onboarding-info':
-                return self::$provided_mole;
+                return self::PROVIDED_MOLE;
         }
     }
 
