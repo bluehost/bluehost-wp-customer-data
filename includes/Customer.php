@@ -39,7 +39,9 @@ class Customer {
     public static function collect() {
         $bh_cdata = Transient::get( self::TRANSIENT );
 
-        if ( ! array_key_exists( 'signup_date', $bh_cdata ) ||
+        if ( $bh_data &&
+             is_array( $bh_cdata ) &&
+             ! array_key_exists( 'signup_date', $bh_cdata ) ||
              ! array_key_exists( 'plan_subtype', $bh_cdata ) ) {
             $bh_cdata = false;
             Transient::delete( self::TRANSIENT );
