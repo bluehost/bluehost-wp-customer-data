@@ -39,6 +39,12 @@ class Customer {
     public static function collect() {
         $bh_cdata = Transient::get( self::TRANSIENT );
 
+        if ( ! array_key_exists( 'signup_date', $bh_cdata ) ||
+             ! array_key_exists( 'plan_subtype', $bh_cdata ) ) {
+            $bh_cdata = false;
+            Transient::delete( self::TRANSIENT );
+        }
+
         if ( ! $bh_cdata ) {
             $guapi    = self::get_account_info();
             $mole     = array( 'meta' => self::get_onboarding_info() );
