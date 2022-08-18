@@ -50,7 +50,7 @@ class Customer {
         if ( ! $bh_cdata ) {
             $guapi    = self::get_account_info();
             $mole     = self::get_onboarding_info();
-            if ( empty( $guapi ) || empty( $mole ) ) {
+            if ( empty( $guapi ) ) {
                 return false;
             }
             $bh_cdata = array_merge( $guapi, array( 'meta' => $mole ) );
