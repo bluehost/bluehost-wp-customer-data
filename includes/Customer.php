@@ -41,8 +41,11 @@ class Customer {
 
         if ( ! $bh_cdata ) {
             $guapi    = self::get_account_info();
-            $mole     = array( 'meta' => self::get_onboarding_info() );
-            $bh_cdata = array_merge( $guapi, $mole );
+            $mole     = self::get_onboarding_info();
+            if ( empty( $guapi ) || empty( $mole ) ) {
+                return false;
+            }
+            $bh_cdata = array_merge( $guapi, array( 'meta' => $mole ) );
             Transient::set( self::TRANSIENT, $bh_cdata, WEEK_IN_SECONDS );
         }
 
