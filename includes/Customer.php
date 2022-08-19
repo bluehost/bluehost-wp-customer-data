@@ -39,10 +39,13 @@ class Customer {
     public static function collect() {
         $bh_cdata = Transient::get( self::TRANSIENT );
 
-        if ( $bh_data &&
+        if ( $bh_cdata &&
              is_array( $bh_cdata ) &&
-             ! array_key_exists( 'signup_date', $bh_cdata ) ||
-             ! array_key_exists( 'plan_subtype', $bh_cdata ) ) {
+            ( 
+                ! array_key_exists( 'signup_date', $bh_cdata ) ||
+                ! array_key_exists( 'plan_subtype', $bh_cdata ) 
+            )
+        ) {
             $bh_cdata = false;
             Transient::delete( self::TRANSIENT );
         }
@@ -62,7 +65,7 @@ class Customer {
 
     /**
      * Prepopulate with provided data.
-     * 
+     *
      * @param string $path of desired API endpoint
      * @return object|false of response data in json format
      */
@@ -73,9 +76,9 @@ class Customer {
             case '/hosting-account-info':
                 $key = self::get_cdata_key_by_path( $path );
                 $provided = \get_option( $key );
-                if ( 
-                    ! empty( $provided ) 
-                    && is_string( $provided ) 
+                if (
+                    ! empty( $provided )
+                    && is_string( $provided )
                     && is_object( $decoded = json_decode( $provided ) )
                 ) {
                     $provided = $decoded;
@@ -95,7 +98,7 @@ class Customer {
      */
     private static function get_cdata_key_by_path( $path ) {
         switch( $path ) {
-            case '/hosting-account-info': 
+            case '/hosting-account-info':
                 return self::PROVIDED_GUAPI;
             case '/onboarding-info':
                 return self::PROVIDED_MOLE;
@@ -104,12 +107,12 @@ class Customer {
 
     /**
      * Connect to API with token via AccessToken Class in Bluehost Plugin
-     * 
+     *
      * @param string $path of desired API endpoint
      * @return object of response data in json format
      */
     public static function connect( $path ) {
-        
+
         if ( ! $path ) {
             return;
         }
@@ -122,7 +125,7 @@ class Customer {
 
         // refresh token if needed
         AccessToken::maybe_refresh_token();
-        
+
         // construct request
         $token         = AccessToken::get_token();
         $user_id       = AccessToken::get_user();
@@ -144,14 +147,14 @@ class Customer {
 
     /**
      * Connect to the hosting info (guapi) endpoint and format response into hiive friendly data
-     * 
+     *
      * @return array of relevant data
      */
     public static function get_account_info(){
 
         $info     = array();
         $response = self::connect( '/hosting-account-info' );
-        
+
         // exit if response is not object
         if ( ! is_object( $response ) ) {
             return $info;
@@ -159,7 +162,7 @@ class Customer {
 
         // transfer relevant data to $info array
         $info['customer_id']  = AccessToken::get_user();
-        
+
         if (
             isset( $response->affiliate ) &&
             is_object( $response->affiliate ) &&
@@ -184,7 +187,7 @@ class Customer {
             }
         }
 
-        
+
         if ( isset( $response->plan ) && is_object( $response->plan ) ) {
 
             // using property_exists in case of null value
@@ -209,7 +212,7 @@ class Customer {
         return $info;
     }
 
-    
+
     /**
      * Connect to the onboarding info (mole) endpoint and format response into hiive friendly data
      *
@@ -226,7 +229,7 @@ class Customer {
         }
 
         // transfer existing relevant data to $info array
-        if ( 
+        if (
             isset( $response->description ) &&
             is_object( $response->description )
         ) {
@@ -244,9 +247,9 @@ class Customer {
                 }
             }
         }
-        
 
-        if ( 
+
+        if (
             isset( $response->site_intentions ) &&
             is_object( $response->site_intentions )
         ) {
@@ -284,7 +287,7 @@ class Customer {
 
     /**
      * Normalize blog
-     * 
+     *
      * For now this is just 0 or 20 values, but in the future we can update based on other factors and treat as a blog score
      */
     public static function normalize_blog( $blog ){
@@ -301,7 +304,7 @@ class Customer {
 
     /**
      * Normalize store
-     * 
+     *
      * For now this is just 0 or 20 values, but in the future we can update based on other factors and treat as a store score
      */
     public static function normalize_store( $store ){
@@ -323,9 +326,9 @@ class Customer {
      *  1 When selected comfort level is second closest to "A little" and "Continue" is clicked
      *  2 When selected comfort level is second closest to "Very" and "Continue" is clicked
      *  3 When selected comfort level is closest to "Very" and "Continue" is clicked
-     * 
+     *
      * @param string $comfort value returned from api for comfort_creating_sites
-     * @return integer representing normalized comfort level 
+     * @return integer representing normalized comfort level
      */
     public static function normalize_comfort( $comfort ){
 
@@ -354,7 +357,7 @@ class Customer {
      * diy_with_help When "A little Help" is clicked
      * do_it_for_me When "Built for you" is clicked
      * skip When "Skip this step" is clicked
-     * 
+     *
      * @param string $help value returned from api for help_needed
      * @return integer representing normalized help level
      */
