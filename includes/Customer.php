@@ -41,8 +41,11 @@ class Customer {
 
         if ( $bh_cdata &&
              is_array( $bh_cdata ) &&
-             ! array_key_exists( 'signup_date', $bh_cdata ) ||
-             ! array_key_exists( 'plan_subtype', $bh_cdata ) ) {
+            ( 
+                ! array_key_exists( 'signup_date', $bh_cdata ) ||
+                ! array_key_exists( 'plan_subtype', $bh_cdata ) 
+            )
+        ) {
             $bh_cdata = false;
             Transient::delete( self::TRANSIENT );
         }
