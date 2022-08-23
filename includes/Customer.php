@@ -39,6 +39,13 @@ class Customer {
     private const PROVIDED_MOLE = 'bh_cdata_mole';
 
     /**
+     * The number of failed connection attempts.
+     *
+     * @var integer
+     */
+    private const RETRY_COUNT = 0;
+
+    /**
      * Prepare customer data
      *
      * @return array of customer data
@@ -130,9 +137,10 @@ class Customer {
             return $provided;
         }
 
-        $throttle = Transient::get( self::THROTTLE );
+        $throttle    = Transient::get( self::THROTTLE );
+        $retry_count = (int) \get_option( self::RETRY_COUNT, 0 );
 
-        if ( false !== $throttle ) {
+        if ( false !== $throttle || $retry_count >= 10 ) {
             return;
         }
 
@@ -151,9 +159,20 @@ class Customer {
 
         // exit on errors
         if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) != 200 ) {
-            Transient::set(  self::THROTTLE, 1, MINUTE_IN_SECONDS );
+            $retry_count++;
+            \update_option( self::RETRY_COUNT, $retry_count );
+
+            if ( $retry_count < 5 ) {
+                $timeout = MINUTE_IN_SECONDS * $retry_count;
+            } else {
+                $timeout = HOURS_IN_SECONDS * $retry_count;
+            }
+
+            Transient::set(  self::THROTTLE, 1, $timeout );
             return;
         }
+
+        \delete_option( self::RETRY_COUNT );
 
         return json_decode( wp_remote_retrieve_body( $response ) );
     }
