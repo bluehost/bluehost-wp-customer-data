@@ -17,6 +17,14 @@ class Customer {
      */
     private const TRANSIENT = 'bh_cdata';
 
+
+    /**
+     * Retry throttle.
+     *
+     * @var string
+     */
+    private const THROTTLE = 'bh_data_pause';
+
     /**
      * Provided option.
      *
@@ -123,6 +131,10 @@ class Customer {
             return $provided;
         }
 
+        if ( Transient::get( self::THROTTLE ) ) {
+            return;
+        }
+
         // refresh token if needed
         AccessToken::maybe_refresh_token();
 
@@ -138,6 +150,7 @@ class Customer {
 
         // exit on errors
         if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) != 200 ) {
+            Transient::set(  self::THROTTLE, 1, MINUTE_IN_SECONDS );
             return;
         }
 
