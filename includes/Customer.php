@@ -151,6 +151,7 @@ class Customer {
 
         if ( empty( $token ) || empty( $user_id ) || empty( $domain ) ) {
             self::throttle();
+            return;
         }
 
         $api_endpoint  = 'https://my.bluehost.com/api/users/'.$user_id.'/usersite/'.$domain;
