@@ -151,6 +151,11 @@ class Customer {
         $token         = AccessToken::get_token();
         $user_id       = AccessToken::get_user();
         $domain        = SiteMeta::get_domain();
+
+        if ( empty( $token ) || empty( $user_id ) || empty( $domain ) ) {
+            return;
+        }
+
         $api_endpoint  = 'https://my.bluehost.com/api/users/'.$user_id.'/usersite/'.$domain;
         $args          = array( 'headers' => array( 'X-SiteAPI-Token' => $token ) );
         $url           = $api_endpoint . $path;
