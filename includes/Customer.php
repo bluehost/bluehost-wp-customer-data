@@ -171,7 +171,9 @@ class Customer {
 
 
 	/**
-	 * @return bool
+	 * Checks if a request should be throttled.
+	 *
+	 * @return bool 
 	 */
 	public static function is_throttled() {
 		$throttle = Transient::get( self::THROTTLE );
