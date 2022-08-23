@@ -18,6 +18,13 @@ class Customer {
     private const TRANSIENT = 'bh_cdata';
 
     /**
+     * Retry throttle.
+     *
+     * @var string
+     */
+    private const THROTTLE = 'bh_cdata_pause';
+
+    /**
      * Provided option.
      *
      * @var string
@@ -30,6 +37,13 @@ class Customer {
      * @var string
      */
     private const PROVIDED_MOLE = 'bh_cdata_mole';
+
+    /**
+     * The number of failed connection attempts.
+     *
+     * @var integer
+     */
+    private const RETRY_COUNT = 'bh_cdata_retry_count';
 
     /**
      * Prepare customer data
@@ -123,6 +137,10 @@ class Customer {
             return $provided;
         }
 
+        if ( self::is_throttled() ) {
+            return;
+        }
+
         // refresh token if needed
         AccessToken::maybe_refresh_token();
 
@@ -130,6 +148,12 @@ class Customer {
         $token         = AccessToken::get_token();
         $user_id       = AccessToken::get_user();
         $domain        = SiteMeta::get_domain();
+
+        if ( empty( $token ) || empty( $user_id ) || empty( $domain ) ) {
+            self::throttle();
+            return;
+        }
+
         $api_endpoint  = 'https://my.bluehost.com/api/users/'.$user_id.'/usersite/'.$domain;
         $args          = array( 'headers' => array( 'X-SiteAPI-Token' => $token ) );
         $url           = $api_endpoint . $path;
@@ -138,10 +162,56 @@ class Customer {
 
         // exit on errors
         if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) != 200 ) {
+            self::throttle();
             return;
         }
 
+        self::clear_throttle();
         return json_decode( wp_remote_retrieve_body( $response ) );
+    }
+
+
+    /**
+     * Checks if a request should be throttled.
+     *
+     * @return bool
+     */
+    public static function is_throttled() {
+        $throttle = Transient::get( self::THROTTLE );
+        $retry_count = (int) \get_option( self::RETRY_COUNT, 0 );
+
+        if ( false !== $throttle || $retry_count >= 10 ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Updates the throttle when there is a failure.
+     */
+    public static function throttle() {
+        $retry_count = (int) \get_option( self::RETRY_COUNT, 0 ) + 1;
+
+        if ( $retry_count <= 5 ) {
+            $timeout = MINUTE_IN_SECONDS * $retry_count;
+        } elseif ( $retry_count < 10 ) {
+            $timeout = HOUR_IN_SECONDS * $retry_count;
+        } else {
+            $timeout = WEEK_IN_SECONDS;
+            $retry_count = 0;
+        }
+
+        Transient::set(  self::THROTTLE, 1, $timeout );
+        \update_option( self::RETRY_COUNT, $retry_count );
+    }
+
+
+    /**
+     * Clears the retry count option.
+     */
+    public static function clear_throttle() {
+        \delete_option( self::RETRY_COUNT );
     }
 
 
