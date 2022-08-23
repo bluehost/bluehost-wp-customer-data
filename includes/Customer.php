@@ -22,7 +22,7 @@ class Customer {
      *
      * @var string
      */
-    private const THROTTLE = 'bh_data_pause';
+    private const THROTTLE = 'bh_cdata_pause';
 
     /**
      * Provided option.
@@ -43,7 +43,7 @@ class Customer {
      *
      * @var integer
      */
-    private const RETRY_COUNT = 0;
+    private const RETRY_COUNT = 'bh_cdata_retry_count';
 
     /**
      * Prepare customer data
