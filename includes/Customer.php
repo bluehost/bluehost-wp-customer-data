@@ -131,7 +131,9 @@ class Customer {
             return $provided;
         }
 
-        if ( Transient::get( self::THROTTLE ) ) {
+        $throttle = Transient::get( self::THROTTLE );
+
+        if ( false !== $throttle ) {
             return;
         }
 
