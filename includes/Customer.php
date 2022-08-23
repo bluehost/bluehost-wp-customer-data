@@ -17,7 +17,6 @@ class Customer {
      */
     private const TRANSIENT = 'bh_cdata';
 
-
     /**
      * Retry throttle.
      *
