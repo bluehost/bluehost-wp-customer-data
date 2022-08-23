@@ -163,8 +163,11 @@ class Customer {
 
             if ( $retry_count <= 5 ) {
                 $timeout = MINUTE_IN_SECONDS * $retry_count;
-            } else {
+            } elseif ( $retry_count < 10 ) {
                 $timeout = HOURS_IN_SECONDS * $retry_count;
+            } else {
+                $timeout = WEEK_IN_SECONDS;
+                $retry_count = 0;
             }
 
             Transient::set(  self::THROTTLE, 1, $timeout );
