@@ -196,7 +196,7 @@ class Customer {
         if ( $retry_count <= 5 ) {
             $timeout = MINUTE_IN_SECONDS * $retry_count;
         } elseif ( $retry_count < 10 ) {
-            $timeout = HOURS_IN_SECONDS * $retry_count;
+            $timeout = HOUR_IN_SECONDS * $retry_count;
         } else {
             $timeout = WEEK_IN_SECONDS;
             $retry_count = 0;
