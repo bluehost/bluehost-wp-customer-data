@@ -160,15 +160,16 @@ class Customer {
         // exit on errors
         if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) != 200 ) {
             $retry_count++;
-            \update_option( self::RETRY_COUNT, $retry_count );
 
-            if ( $retry_count < 5 ) {
+            if ( $retry_count <= 5 ) {
                 $timeout = MINUTE_IN_SECONDS * $retry_count;
             } else {
                 $timeout = HOURS_IN_SECONDS * $retry_count;
             }
 
             Transient::set(  self::THROTTLE, 1, $timeout );
+
+            \update_option( self::RETRY_COUNT, $retry_count );
             return;
         }
 
