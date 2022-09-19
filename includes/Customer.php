@@ -90,10 +90,16 @@ class Customer {
 				$data = false;
 				Transient::delete( self::CUST_DATA ); // delete malformed transient data
 			}
+
+			// valid data found as transient
+			if ( $data ) {
+				// migrate transient data to option
+				self::save_data( $data );
+				Transient::delete( self::CUST_DATA ); // delete transient when data migrated to option
+			}
 		}
 
 		// still empty - no option, and no transient
-		//TODO replace this block with refresh?
 		if ( empty( $data ) ) {
 			self::refresh_data();
 		}
@@ -134,6 +140,15 @@ class Customer {
 
 		// combine into bh_cdata format
 		$data = array_merge( $guapi, array( 'meta' => $mole ) );
+
+		// save customer data
+		self::save_data( $data );
+	}
+
+	/**
+	 * Save data to option and set expiry
+	 */
+	private static function save_data( $data ) {
 
 		// save to option and set new expiry
 		\update_option( self::CUST_DATA, $data );
