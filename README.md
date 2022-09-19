@@ -17,3 +17,4 @@ The module checks for customer data in the following order:
 - as provided data (from installer).
 - Finally if not found anywhere else, (or if the option is expired) data is fetched from the guapi endpoint which is hen saved to the option for future use (with soft expiration).
 
+Note: The requests to the guapi endpoint are throttled when they don't return valid date. This helps us control how much various sites with the plugin installed are attempting to reach the api. In the case where a site is not on bluehost it will send 10 requests per week attempting to collect customer information. When data is stored, the soft expiration is set to a full month, and will not delete the stale data until valid data is returned.
