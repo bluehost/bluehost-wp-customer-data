@@ -11,11 +11,18 @@ use NewfoldLabs\WP\Module\Data\Helpers\Transient;
 class Customer {
 
     /**
-     * Normalized, weekly-cached.
+     * Normalized, monthly soft deleted
      *
      * @var string
      */
-    private const TRANSIENT = 'bh_cdata';
+    private const CUST_DATA = 'bh_cdata';
+
+    /**
+     * Soft delete flag
+     *
+     * @var string
+     */
+    private const CUST_DATA_EXP = 'bh_cdata_expiry';
 
     /**
      * Retry throttle.
@@ -46,35 +53,91 @@ class Customer {
     private const RETRY_COUNT = 'bh_cdata_retry_count';
 
     /**
-     * Prepare customer data
+     * Collect customer data
      *
      * @return array of customer data
      */
     public static function collect() {
-        $bh_cdata = Transient::get( self::TRANSIENT );
 
-        if ( $bh_cdata &&
-             is_array( $bh_cdata ) &&
-            ( 
-                ! array_key_exists( 'signup_date', $bh_cdata ) ||
-                ! array_key_exists( 'plan_subtype', $bh_cdata ) 
-            )
-        ) {
-            $bh_cdata = false;
-            Transient::delete( self::TRANSIENT );
-        }
+        // check if bh_cdata is in option (prefered)
+        $data = \get_option( self::CUST_DATA );
 
-        if ( ! $bh_cdata ) {
-            $guapi    = self::get_account_info();
-            $mole     = self::get_onboarding_info();
-            if ( empty( $guapi ) ) {
-                return false;
+        // if found
+        if ( ! empty( $data ) ) {
+
+            // if stale, refresh data
+            if ( self::is_stale() ) {
+                self::refresh_data();
             }
-            $bh_cdata = array_merge( $guapi, array( 'meta' => $mole ) );
-            Transient::set( self::TRANSIENT, $bh_cdata, WEEK_IN_SECONDS );
+            
+            return $data; // return data
         }
 
-        return $bh_cdata;
+        // Legacy - deal with Transient
+
+        // if no option found, check for transient (legacy)
+        if ( empty( $data ) ) {
+            $data = Transient::get( self::CUST_DATA );
+
+            // check if transient data is malformed
+            if ( $data &&
+                is_array( $data ) &&
+                ( 
+                    ! array_key_exists( 'signup_date', $data ) ||
+                    ! array_key_exists( 'plan_subtype', $data ) 
+                )
+            ) {
+                $data = false;
+                Transient::delete( self::CUST_DATA ); // delete malformed transient data
+            }
+        }
+
+        // still empty - no option, and no transient
+        //TODO replace this block with refresh?
+        if ( empty( $data ) ) {
+            self::refresh_data();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Refresh customer data
+     *
+     */
+    private static function refresh_data() {
+        // get account info
+        $guapi = self::get_account_info();
+        if ( empty( $guapi ) ) {
+            return;
+        }
+
+        // Validations
+        // bail if any required values are missing
+        // customer_id, signup_date & plan_subtype required by ecommerce module
+        if ( ! array_key_exists( 'customer_id', $guapi ) ) {
+            return;
+        }
+        if ( ! array_key_exists( 'signup_date', $guapi ) ) {
+            return;
+        }
+        if ( ! array_key_exists( 'plan_subtype', $guapi ) ) {
+            return;
+        }
+
+        // get onboarding info
+        $mole  = self::get_onboarding_info();
+
+        // No validations here since this data is not required,
+        // TODO - remove mole from this module once we have plugin based onboarding
+        // ideally we send it directly as sitemeta during new onboarding
+
+        // combine into bh_cdata format
+        $data = array_merge( $guapi, array( 'meta' => $mole ) );
+
+        // save to option and set new expiry
+        \update_option( self::CUST_DATA, $data );
+        \update_option( self::CUST_DATA_EXP, time() + MONTH_IN_SECONDS ); // set expiration to now + 1 month (30 days)
     }
 
     /**
@@ -170,6 +233,29 @@ class Customer {
         return json_decode( wp_remote_retrieve_body( $response ) );
     }
 
+    /**
+     * Checks if the expiration option has passed
+     * 
+     * @return bool
+     */
+    private static function is_stale() {
+        
+        // check cdata expiry - return if not yet soft deleted/expired
+        $expiry = \get_option( self::CUST_DATA_EXP, false );
+
+        // if no expiry return false, as it hasn't been set up yet (not stale)
+        if ( false === $expiry ) {
+            return false;
+        }
+
+        // if expiration has passed return true (stale)
+        if ( $expiry > time() ) {
+            return true;
+        }
+
+        // otherwise return false (not stale)
+        return false;
+    }
 
     /**
      * Checks if a request should be throttled.
