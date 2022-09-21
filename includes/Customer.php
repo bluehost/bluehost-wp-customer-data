@@ -215,6 +215,13 @@ class Customer {
 			return $provided;
 		}
 
+		// Bail if this is an ajax request
+		// Unable to aquire AccessToken on ajax requests
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			return;
+		}
+
+		// bail if throttled
 		if ( self::is_throttled() ) {
 			return;
 		}
