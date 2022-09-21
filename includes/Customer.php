@@ -218,7 +218,7 @@ class Customer {
 		}
 
 		// Bail if this is an ajax request
-		// Unable to aquire AccessToken on ajax requests
+		// Unable to acquire AccessToken on ajax requests
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			return;
 		}
