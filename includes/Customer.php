@@ -22,7 +22,7 @@ class Customer {
 	 *
 	 * @var string
 	 */
-	private const CUST_DATA_EXP = 'bh_cdata_expiry';
+	private const CUST_DATA_EXP = 'bh_cdata_expiration';
 
 	/**
 	 * Retry throttle.
@@ -55,7 +55,7 @@ class Customer {
 	/**
 	 * Collect customer data
 	 *
-	 * @return array of customer data
+	 * @return array of customer data or false if none
 	 */
 	public static function collect() {
 
@@ -73,9 +73,8 @@ class Customer {
 			return $data; // return data
 		}
 
-		// Legacy - deal with Transient
-
-		// if no option found, check for transient (legacy)
+		// If no option found, check for transient value
+		// Get legacy data from Transient value 
 		if ( empty( $data ) ) {
 			$data = Transient::get( self::CUST_DATA );
 
@@ -99,7 +98,7 @@ class Customer {
 			}
 		}
 
-		// still empty - no option, and no transient
+		// data is still empty (not found as option, or valid transient), Fetch it
 		if ( empty( $data ) ) {
 			self::refresh_data();
 		}
@@ -112,8 +111,11 @@ class Customer {
 	 *
 	 */
 	private static function refresh_data() {
+		
 		// get account info
 		$guapi = self::get_account_info();
+
+		// bail if no data
 		if ( empty( $guapi ) ) {
 			return;
 		}
