@@ -55,7 +55,7 @@ class Customer {
 	/**
 	 * Collect customer data
 	 *
-	 * @return array of customer data or false if none
+	 * @return array of customer data
 	 */
 	public static function collect() {
 
@@ -86,12 +86,12 @@ class Customer {
 					! array_key_exists( 'plan_subtype', $data ) 
 				)
 			) {
-				$data = false;
+				$data = array();
 				Transient::delete( self::CUST_DATA ); // delete malformed transient data
 			}
 
 			// valid data found as transient
-			if ( $data ) {
+			if ( ! empty( $data ) ) {
 				// migrate transient data to option
 				self::save_data( $data );
 				Transient::delete( self::CUST_DATA ); // delete transient when data migrated to option
