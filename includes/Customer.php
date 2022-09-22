@@ -22,7 +22,7 @@ class Customer {
 	 *
 	 * @var string
 	 */
-	private const CUST_DATA_EXP = 'bh_cdata_expiry';
+	private const CUST_DATA_EXP = 'bh_cdata_expiration';
 
 	/**
 	 * Retry throttle.
@@ -73,9 +73,8 @@ class Customer {
 			return $data; // return data
 		}
 
-		// Legacy - deal with Transient
-
-		// if no option found, check for transient (legacy)
+		// If no option found, check for transient value
+		// Get legacy data from Transient value 
 		if ( empty( $data ) ) {
 			$data = Transient::get( self::CUST_DATA );
 
@@ -87,19 +86,19 @@ class Customer {
 					! array_key_exists( 'plan_subtype', $data ) 
 				)
 			) {
-				$data = false;
+				$data = array();
 				Transient::delete( self::CUST_DATA ); // delete malformed transient data
 			}
 
 			// valid data found as transient
-			if ( $data ) {
+			if ( ! empty( $data ) ) {
 				// migrate transient data to option
 				self::save_data( $data );
 				Transient::delete( self::CUST_DATA ); // delete transient when data migrated to option
 			}
 		}
 
-		// still empty - no option, and no transient
+		// data is still empty (not found as option, or valid transient), Fetch it
 		if ( empty( $data ) ) {
 			self::refresh_data();
 		}
@@ -112,8 +111,11 @@ class Customer {
 	 *
 	 */
 	private static function refresh_data() {
+		
 		// get account info
 		$guapi = self::get_account_info();
+
+		// bail if no data
 		if ( empty( $guapi ) ) {
 			return;
 		}
@@ -215,7 +217,13 @@ class Customer {
 			return $provided;
 		}
 
+		// bail if throttled
 		if ( self::is_throttled() ) {
+			return;
+		}
+
+		// bail to avoid throttling customer endpoint when can not access token
+		if ( ! AccessToken::should_refresh_token() ) {
 			return;
 		}
 
