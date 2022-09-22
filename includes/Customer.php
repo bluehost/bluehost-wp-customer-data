@@ -271,12 +271,8 @@ class Customer {
 		}
 
 		// Does user have permissions or is this cron?
-		if ( ! ( current_user_can( 'manage_options' ) || wp_doing_cron() ) ) {
-			// Unable to acquire AccessToken either without user priveledges or for cron events
-			return false;
-		}
-
-		return true;
+		// Unable to acquire AccessToken either without user priveledges or for cron events
+		return ( current_user_can( 'manage_options' ) || wp_doing_cron() );
 	}
 
 	/**
