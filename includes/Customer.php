@@ -217,14 +217,13 @@ class Customer {
 			return $provided;
 		}
 
-		// Bail if this is an ajax request
-		// Unable to acquire AccessToken on ajax requests
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		// bail if throttled
+		if ( self::is_throttled() ) {
 			return;
 		}
 
-		// bail if throttled
-		if ( self::is_throttled() ) {
+		// bail to avoid throttling customer endpoint when cant access token
+		if ( self::cant_access_token() ) {
 			return;
 		}
 
@@ -255,6 +254,28 @@ class Customer {
 
 		self::clear_throttle();
 		return json_decode( wp_remote_retrieve_body( $response ) );
+	}
+
+	/**
+	 * Check if maybe_refresh_token will not retrieve a valid token
+	 * matching logic in Bluehost/AccessToken class for maybe_refresh_token
+	 *
+	 * @return bool
+	 */
+	private static function cant_access_token() {
+
+		// Bail if this is an ajax request
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			// Unable to acquire AccessToken on ajax requests
+			return true;
+		}
+
+		// Bail, don't attempt to get a token when it will auto-fail
+		if ( ! ( current_user_can( 'manage_options' ) || wp_doing_cron() ) ) {
+			// Unable to acquire AccessToken either without user priveledges or for cron events
+			return true;
+		}
+
 	}
 
 	/**
