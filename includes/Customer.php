@@ -222,8 +222,8 @@ class Customer {
 			return;
 		}
 
-		// bail to avoid throttling customer endpoint when cant access token
-		if ( self::cant_access_token() ) {
+		// bail to avoid throttling customer endpoint when can not access token
+		if ( ! self::can_access_token() ) {
 			return;
 		}
 
@@ -257,25 +257,26 @@ class Customer {
 	}
 
 	/**
-	 * Check if maybe_refresh_token will not retrieve a valid token
+	 * Check if maybe_refresh_token will retrieve a valid token
 	 * matching logic in Bluehost/AccessToken class for maybe_refresh_token
 	 *
 	 * @return bool
 	 */
-	private static function cant_access_token() {
+	private static function can_access_token() {
 
-		// Bail if this is an ajax request
+		// Is this is an ajax request
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			// Unable to acquire AccessToken on ajax requests
-			return true;
+			return false;
 		}
 
-		// Bail, don't attempt to get a token when it will auto-fail
+		// Does user have permissions or is this cron?
 		if ( ! ( current_user_can( 'manage_options' ) || wp_doing_cron() ) ) {
 			// Unable to acquire AccessToken either without user priveledges or for cron events
-			return true;
+			return false;
 		}
 
+		return true;
 	}
 
 	/**
