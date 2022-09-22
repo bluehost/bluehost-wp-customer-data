@@ -271,8 +271,8 @@ class Customer {
 			return false;
 		}
 
-		// if expiration has passed return true (stale)
-		if ( $expiry > time() ) {
+		// if current time is more than the expiration time, data is stale
+		if ( $expiry < time() ) {
 			return true;
 		}
 
