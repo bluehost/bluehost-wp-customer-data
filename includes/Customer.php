@@ -92,6 +92,7 @@ class Customer {
 							$data['customer_id'] = Arr::get( $data, 'customer_id' );
 							update_option( self::CUST_DATA, $data );
 						} else {
+							delete_option( self::CUST_DATA );
 							self::refresh_data();
 						}
 					}
