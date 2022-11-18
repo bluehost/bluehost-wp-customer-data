@@ -88,8 +88,12 @@ class Customer {
 					$body = wp_remote_retrieve_body( $response );
 					$data = json_decode( $body, true );
 					if ( $data && is_array( $data ) ) {
-						$data['customer_id'] = Arr::get( $data, 'customer_id' );
-						update_option( self::CUST_DATA, $data );
+						if ( ! empty( $data ) ) {
+							$data['customer_id'] = Arr::get( $data, 'customer_id' );
+							update_option( self::CUST_DATA, $data );
+						} else {
+							self::refresh_data();
+						}
 					}
 				}
 			}
