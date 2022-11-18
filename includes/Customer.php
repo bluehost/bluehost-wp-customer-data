@@ -6,6 +6,7 @@ use Bluehost\SiteMeta;
 use NewfoldLabs\WP\Module\Data\Helpers\Transient;
 use NewfoldLabs\WP\Module\Data\HiiveConnection;
 use WP_Forge\Helpers\Arr;
+use WP_Forge\Helpers\Str;
 
 /**
  * Helper class for gathering and formatting customer data
@@ -72,7 +73,7 @@ class Customer {
 				self::refresh_data();
 			}
 
-			if ( empty( $data['customer_id'] ) ) {
+			if ( empty( $data['customer_id'] ) && Str::contains(site_url(), 'temp.domains') ) {
 				$response = wp_remote_get(
 					NFD_HIIVE_URL . '/sites/v1/customer',
 					array(
