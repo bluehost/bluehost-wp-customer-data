@@ -4,6 +4,9 @@ namespace Bluehost\WP\Data;
 use Bluehost\AccessToken;
 use Bluehost\SiteMeta;
 use NewfoldLabs\WP\Module\Data\Helpers\Transient;
+use NewfoldLabs\WP\Module\Data\HiiveConnection;
+use WP_Forge\Helpers\Arr;
+use WP_Forge\Helpers\Str;
 
 /**
  * Helper class for gathering and formatting customer data
@@ -69,21 +72,47 @@ class Customer {
 			if ( self::is_stale() ) {
 				self::refresh_data();
 			}
-			
+
+			if ( empty( $data['customer_id'] ) && ! Str::contains(site_url(), 'temp.domains') ) {
+				$response = wp_remote_get(
+					NFD_HIIVE_URL . '/sites/v1/customer',
+					array(
+						'headers' => array(
+							'Content-Type'  => 'application/json',
+							'Accept'        => 'application/json',
+							'Authorization' => 'Bearer ' . HiiveConnection::get_auth_token(),
+						),
+					)
+				);
+				if ( ! is_wp_error( $response ) ) {
+					$body = wp_remote_retrieve_body( $response );
+					$data = json_decode( $body, true );
+					if ( $data && is_array( $data ) ) {
+						if ( ! empty( $data ) ) {
+							$data['customer_id'] = Arr::get( $data, 'customer_id' );
+							update_option( self::CUST_DATA, $data );
+						} else {
+							delete_option( self::CUST_DATA );
+							self::refresh_data();
+						}
+					}
+				}
+			}
+
 			return $data; // return data
 		}
 
 		// If no option found, check for transient value
-		// Get legacy data from Transient value 
+		// Get legacy data from Transient value
 		if ( empty( $data ) ) {
 			$data = Transient::get( self::CUST_DATA );
 
 			// check if transient data is malformed
 			if ( $data &&
 				is_array( $data ) &&
-				( 
+				(
 					! array_key_exists( 'signup_date', $data ) ||
-					! array_key_exists( 'plan_subtype', $data ) 
+					! array_key_exists( 'plan_subtype', $data )
 				)
 			) {
 				$data = array();
@@ -111,7 +140,7 @@ class Customer {
 	 *
 	 */
 	private static function refresh_data() {
-		
+
 		// get account info
 		$guapi = self::get_account_info();
 
@@ -258,11 +287,11 @@ class Customer {
 
 	/**
 	 * Checks if the expiration option has passed
-	 * 
+	 *
 	 * @return bool
 	 */
 	private static function is_stale() {
-		
+
 		// check cdata expiry - return if not yet soft deleted/expired
 		$expiry = \get_option( self::CUST_DATA_EXP, false );
 
