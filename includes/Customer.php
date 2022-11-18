@@ -73,7 +73,7 @@ class Customer {
 				self::refresh_data();
 			}
 
-			if ( empty( $data['customer_id'] ) && Str::contains(site_url(), 'temp.domains') ) {
+			if ( empty( $data['customer_id'] ) && ! Str::contains(site_url(), 'temp.domains') ) {
 				$response = wp_remote_get(
 					NFD_HIIVE_URL . '/sites/v1/customer',
 					array(
